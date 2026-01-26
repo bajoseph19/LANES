@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Add Recipe - LANES{% endblock %}
+
+{% block content %}
+<div class="parse-recipe">
+    <h1>Add a New Recipe</h1>
+    <p class="description">
+        Paste a recipe URL from Pinterest, AllRecipes, Food Network, or any food blog.
+        Our AI will extract the ingredients automatically!
+    </p>
+    
+    <form method="POST" action="{{ url_for('parse_recipe') }}" class="recipe-form">
+        <div class="form-group">
+            <label for="url">Recipe URL</label>
+            <input 
+                type="url" 
+                id="url" 
+                name="url" 
+                placeholder="https://www.example.com/recipe/chocolate-chip-cookies" 
+                required
+                class="url-input"
+            >
+            <small>Examples: AllRecipes, Food Network, Tasty, Pinterest recipe pins, food blogs</small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-lg">Parse Recipe</button>
+    </form>
+    
+    <div class="tips">
+        <h3>Tips for Best Results</h3>
+        <ul>
+            <li>Use direct links to recipe pages (not search results)</li>
+            <li>Works best with well-formatted recipe websites</li>
+            <li>Some blogs may require scrolling to load ingredients - try the full URL</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

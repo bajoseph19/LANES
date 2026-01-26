@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Recipe Details - LANES{% endblock %}
+
+{% block content %}
+<div class="recipe-detail">
+    <div class="recipe-header">
+        <h1>{{ recipe.title }}</h1>
+        <a href="{{ recipe.url }}" target="_blank" class="btn btn-secondary">View Original Recipe</a>
+    </div>
+    
+    <div class="ingredients-section">
+        <h2>Ingredients ({{ recipe.ingredients|length }})</h2>
+        
+        {% if recipe.ingredients %}
+            <div class="ingredients-list">
+                {% for ingredient in recipe.ingredients %}
+                    <div class="ingredient-item {% if not ingredient.in_cart %}removed{% endif %}">
+                        <input 
+                            type="checkbox" 
+                            {% if ingredient.in_cart %}checked{% endif %}
+                            onchange="toggleIngredient({{ ingredient.id }})"
+                            id="ing-{{ ingredient.id }}"
+                        >
+                        <label for="ing-{{ ingredient.id }}">{{ ingredient.text }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="recipe-actions">
+                <a href="{{ url_for('cart') }}" class="btn btn-primary">View Shopping Cart</a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        {% else %}
+            <p>No ingredients found for this recipe.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleIngredient(ingredientId) {
+    fetch(`/api/toggle-ingredient/${ingredientId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const item = document.querySelector(`#ing-${ingredientId}`).parentElement;
+            if (data.in_cart) {
+                item.classList.remove('removed');
+            } else {
+                item.classList.add('removed');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling ingredient:', error);
+    });
+}
+</script>
+{% endblock %}
