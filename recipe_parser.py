@@ -15,6 +15,10 @@ from collections import namedtuple
 class RecipeParser:
     """Parser to extract ingredients from recipe websites"""
     
+    # Configuration constants
+    MAX_INGREDIENTS = 50  # Maximum number of ingredients to extract
+    MIN_FOOD_DENSITY = 0.25  # Minimum ratio of food words to total words
+    
     def __init__(self):
         """Initialize the parser with word lists and patterns"""
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -34,6 +38,7 @@ class RecipeParser:
         filepath = os.path.join(self.base_dir, filename)
         
         if not os.path.exists(filepath):
+            print(f"Warning: {filename} not found. Parser will use basic extraction only.")
             return words
         
         try:
@@ -156,7 +161,7 @@ class RecipeParser:
                 # Check density threshold
                 density = food_word_count / len(words) if words else 0
                 
-                if density > 0.25:  # 25% of words are food-related
+                if density > self.MIN_FOOD_DENSITY:  # 25% of words are food-related
                     # This is likely an ingredients section
                     # Try to split into individual ingredients
                     lines = text.split('\n')
@@ -172,7 +177,7 @@ class RecipeParser:
                     if ingredients:
                         break
         
-        return ingredients[:50]  # Limit to reasonable number
+        return ingredients[:self.MAX_INGREDIENTS]  # Limit to reasonable number
     
     def _extract_from_lists(self, soup):
         """Extract ingredients from list elements containing food words"""

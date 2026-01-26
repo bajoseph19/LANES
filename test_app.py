@@ -14,11 +14,12 @@ def test_app():
     # Test 1: Database Models
     print("\n1. Testing Database Models...")
     with app.app_context():
-        # Clear test data if exists
-        test_user = User.query.filter_by(email='test@example.com').first()
-        if test_user:
-            db.session.delete(test_user)
-            db.session.commit()
+        # Initialize database
+        db.create_all()
+        
+        # Clear existing test data
+        User.query.filter_by(email='test@example.com').delete()
+        db.session.commit()
         
         # Create test user
         user = User(email='test@example.com')

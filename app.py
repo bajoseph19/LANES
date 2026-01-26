@@ -157,8 +157,24 @@ def parse_recipe():
                 flash('Could not extract ingredients from this URL. Please try another recipe.', 'warning')
                 return render_template('parse_recipe.html')
             
+            # Try to extract recipe title from URL
+            from urllib.parse import urlparse
+            parsed_url = urlparse(url)
+            domain = parsed_url.netloc.replace('www.', '')
+            path_parts = [p for p in parsed_url.path.split('/') if p]
+            
+            # Use the last meaningful path segment as title, or domain if not available
+            if path_parts:
+                title = path_parts[-1].replace('-', ' ').replace('_', ' ').title()
+            else:
+                title = f"Recipe from {domain}"
+            
+            # Limit title length
+            if len(title) > 100:
+                title = title[:97] + '...'
+            
             # Save recipe to database
-            recipe = Recipe(user_id=current_user.id, url=url, title=f"Recipe from {url[:50]}...")
+            recipe = Recipe(user_id=current_user.id, url=url, title=title)
             db.session.add(recipe)
             db.session.flush()  # Get recipe.id
             
