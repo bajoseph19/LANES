@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - LANES{% endblock %}
+
+{% block content %}
+<div class="cart">
+    <h1>🛒 Shopping Cart</h1>
+    
+    {% if cart_items %}
+        <p class="cart-summary">You have {{ cart_items|length }} items in your cart</p>
+        
+        <div class="cart-items">
+            {% for item in cart_items %}
+                <div class="cart-item">
+                    <div class="item-text">{{ item.text }}</div>
+                    <div class="item-meta">
+                        <a href="{{ url_for('view_recipe', recipe_id=item.recipe_id) }}" class="source-link">
+                            From recipe
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="cart-actions">
+            <button onclick="copyToClipboard()" class="btn btn-primary">📋 Copy List</button>
+            <a href="{{ url_for('parse_recipe') }}" class="btn btn-secondary">Add More Recipes</a>
+        </div>
+        
+        <div class="cart-footer">
+            <p><strong>Next steps:</strong></p>
+            <ul>
+                <li>Copy this list and use it for grocery shopping</li>
+                <li>Import to your preferred grocery delivery app (Instacart, Amazon Fresh, etc.)</li>
+                <li>Print and take to the store</li>
+            </ul>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>Your shopping cart is empty.</p>
+            <a href="{{ url_for('parse_recipe') }}" class="btn btn-primary">Add a Recipe</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function copyToClipboard() {
+    const items = document.querySelectorAll('.cart-item .item-text');
+    const text = Array.from(items).map(item => '• ' + item.textContent.trim()).join('\n');
+    
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Shopping list copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        // Fallback: create textarea and copy
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('Shopping list copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

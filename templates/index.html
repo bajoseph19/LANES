@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}LANES - Welcome{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Welcome to LANES</h1>
+    <p class="tagline">Turn Your Favorite Recipes into Shopping Carts</p>
+    <p class="description">
+        Simply paste a recipe URL from Pinterest, AllRecipes, or your favorite food blog,
+        and we'll automatically extract the ingredients and add them to your shopping cart!
+    </p>
+    
+    <div class="cta-buttons">
+        <a href="{{ url_for('signup') }}" class="btn btn-primary">Get Started</a>
+        <a href="{{ url_for('login') }}" class="btn btn-secondary">Login</a>
+    </div>
+</div>
+
+<div class="features">
+    <h2>How It Works</h2>
+    <div class="feature-grid">
+        <div class="feature">
+            <span class="icon">📝</span>
+            <h3>1. Sign Up</h3>
+            <p>Create your free account in seconds</p>
+        </div>
+        <div class="feature">
+            <span class="icon">🔗</span>
+            <h3>2. Paste Recipe URL</h3>
+            <p>Add any recipe from Pinterest or food blogs</p>
+        </div>
+        <div class="feature">
+            <span class="icon">🤖</span>
+            <h3>3. AI Extracts Ingredients</h3>
+            <p>Our smart parser identifies all ingredients</p>
+        </div>
+        <div class="feature">
+            <span class="icon">🛒</span>
+            <h3>4. Build Your Cart</h3>
+            <p>Review and manage your shopping list</p>
+        </div>
+    </div>
+</div>
+
+<div class="about">
+    <h2>About the Parser</h2>
+    <p>
+        Our advanced recipe parser uses natural language processing (NLP) to intelligently
+        identify ingredients in recipe text. It understands:
+    </p>
+    <ul>
+        <li>Common ingredient names and variations</li>
+        <li>Quantities and measurements (cups, tablespoons, grams, etc.)</li>
+        <li>Ingredient modifiers (chopped, diced, fresh, etc.)</li>
+        <li>Recipe-specific language patterns</li>
+    </ul>
+</div>
+{% endblock %}
