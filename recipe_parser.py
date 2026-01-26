@@ -73,11 +73,40 @@ class RecipeParser:
             List of ingredient strings
         """
         try:
+            # Validate URL to prevent SSRF attacks
+            from urllib.parse import urlparse
+            parsed = urlparse(url)
+            
+            # Only allow HTTP and HTTPS schemes
+            if parsed.scheme not in ('http', 'https'):
+                print(f"Invalid URL scheme: {parsed.scheme}")
+                return []
+            
+            # Block access to localhost and private IP ranges
+            hostname = parsed.hostname
+            if hostname:
+                hostname_lower = hostname.lower()
+                # Block localhost
+                if hostname_lower in ('localhost', '127.0.0.1', '::1'):
+                    print("Access to localhost is not allowed")
+                    return []
+                # Block private IP ranges (basic check)
+                if hostname_lower.startswith(('10.', '172.16.', '172.17.', '172.18.', 
+                                               '172.19.', '172.20.', '172.21.', '172.22.',
+                                               '172.23.', '172.24.', '172.25.', '172.26.',
+                                               '172.27.', '172.28.', '172.29.', '172.30.',
+                                               '172.31.', '192.168.')):
+                    print("Access to private IP addresses is not allowed")
+                    return []
+            
             # Fetch the webpage
+            # Note: This is intentionally fetching user-provided URLs (the core feature)
+            # We validate above to block localhost and private IPs to mitigate SSRF
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
-            response = requests.get(url, headers=headers, timeout=10)
+            response = requests.get(url, headers=headers, timeout=10, allow_redirects=True)
+            response.raise_for_status()
             response.raise_for_status()
             
             # Parse HTML
