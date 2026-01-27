@@ -2,9 +2,23 @@
 Integration test for LANES application
 Tests user registration, login, and recipe parsing
 """
+import os
+import subprocess
 from app import app, db, User, Recipe, Ingredient
 from recipe_parser import RecipeParser
 from bs4 import BeautifulSoup
+
+def setup_environment():
+    """Set up environment by installing required dependencies"""
+    print("Setting up virtual environment and installing dependencies...")
+    try:
+        if os.system("pip install -r requirements.txt") == 0:
+            print("   ✅ Dependencies installed successfully")
+        else:
+            raise Exception("Dependency installation failed. Check errors above.")
+    except Exception as e:
+        print(f"❌ Error during environment setup: {e}")
+        exit(1)
 
 def test_app():
     """Test the main application functionality"""
@@ -136,6 +150,7 @@ def test_app():
 
 if __name__ == '__main__':
     try:
+        setup_environment()  # Install dependencies
         success = test_app()
         exit(0 if success else 1)
     except Exception as e:
