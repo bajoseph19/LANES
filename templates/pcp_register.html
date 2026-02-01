@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Partner Registration - LANES{% endblock %}
+
+{% block content %}
+<div class="pcp-register-page">
+    <div class="register-container">
+        <div class="register-header">
+            <h1>Become a Partner Content Provider</h1>
+            <p>Integrate the Holistic Market widget into your recipe pages and help your readers shop for ingredients with ease.</p>
+        </div>
+
+        <div class="benefits-section">
+            <h2>Partner Benefits</h2>
+            <div class="benefits-grid">
+                <div class="benefit">
+                    <span class="benefit-icon">🛒</span>
+                    <h3>Easy Checkout</h3>
+                    <p>Your readers can purchase ingredients directly from your recipe pages</p>
+                </div>
+                <div class="benefit">
+                    <span class="benefit-icon">📱</span>
+                    <h3>Simple Integration</h3>
+                    <p>Just add a few lines of code to embed the widget</p>
+                </div>
+                <div class="benefit">
+                    <span class="benefit-icon">🚀</span>
+                    <h3>Boost Engagement</h3>
+                    <p>Increase time on page and user satisfaction</p>
+                </div>
+                <div class="benefit">
+                    <span class="benefit-icon">💰</span>
+                    <h3>Revenue Share</h3>
+                    <p>Earn commissions on purchases made through your widget</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="register-form-section">
+            <h2>Register Your Site</h2>
+            <form method="POST" class="register-form">
+                <div class="form-group">
+                    <label for="name">Site/Company Name *</label>
+                    <input type="text" id="name" name="name" placeholder="Amy's Food Blog" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="domain">Website Domain *</label>
+                    <input type="text" id="domain" name="domain" placeholder="amysfoodblog.com" required>
+                    <small>Enter your domain without http:// or www.</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Register as Partner</button>
+            </form>
+        </div>
+
+        <div class="how-it-works">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <h3>Register</h3>
+                    <p>Sign up and get your unique API key</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <h3>Embed</h3>
+                    <p>Add the widget code to your recipe pages</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <h3>Earn</h3>
+                    <p>Your readers shop, you earn commissions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.pcp-register-page {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.register-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.register-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.register-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.benefits-section {
+    margin-bottom: 3rem;
+}
+
+.benefits-section h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.benefit {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.benefit-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.benefit h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.benefit p {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+}
+
+.register-form-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 3rem;
+}
+
+.register-form-section h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.register-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.register-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.register-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.register-form input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.register-form small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.register-form .btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+}
+
+.how-it-works {
+    text-align: center;
+}
+
+.how-it-works h2 {
+    margin-bottom: 2rem;
+}
+
+.steps {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.step {
+    flex: 1;
+    min-width: 200px;
+    max-width: 250px;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: #4a6fa5;
+    color: white;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.step h3 {
+    margin-bottom: 0.5rem;
+}
+
+.step p {
+    color: #666;
+    font-size: 0.95rem;
+}
+</style>
+{% endblock %}

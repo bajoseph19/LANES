@@ -1,39 +1,127 @@
 {% extends "base.html" %}
 
-{% block title %}Add Recipe - LANES{% endblock %}
+{% block title %}Add Pin - Holistic Market{% endblock %}
 
 {% block content %}
 <div class="parse-recipe">
-    <h1>Add a New Recipe</h1>
-    <p class="description">
-        Paste a recipe URL from Pinterest, AllRecipes, Food Network, or any food blog.
-        Our AI will extract the ingredients automatically!
-    </p>
-    
-    <form method="POST" action="{{ url_for('parse_recipe') }}" class="recipe-form">
+    <div class="section-header">
+        <h1 class="section-title">Add Pin</h1>
+    </div>
+
+    <!-- Drag & Drop Area -->
+    <div class="add-pin-area" id="drop-zone" onclick="document.getElementById('url').focus()">
+        <div class="add-pin-icon">&#10133;</div>
+        <div class="add-pin-text">Drag & Drop Pin</div>
+        <div class="text-muted mt-2" style="font-size:0.9rem;">or paste a recipe URL below</div>
+    </div>
+
+    <form method="POST" action="{{ url_for('parse_recipe') }}" class="recipe-form mt-3">
         <div class="form-group">
-            <label for="url">Recipe URL</label>
-            <input 
-                type="url" 
-                id="url" 
-                name="url" 
-                placeholder="https://www.example.com/recipe/chocolate-chip-cookies" 
+            <label class="form-label" for="url">Recipe URL</label>
+            <input
+                type="url"
+                class="form-input"
+                id="url"
+                name="url"
+                placeholder="https://www.pinterest.com/pin/..."
                 required
-                class="url-input"
             >
-            <small>Examples: AllRecipes, Food Network, Tasty, Pinterest recipe pins, food blogs</small>
         </div>
-        
-        <button type="submit" class="btn btn-primary btn-lg">Parse Recipe</button>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg">
+            Import Recipe
+        </button>
     </form>
-    
-    <div class="tips">
-        <h3>Tips for Best Results</h3>
+
+    <!-- Ingredients Section (shown after parsing) -->
+    <div class="card mt-4">
+        <div class="section-header mb-2">
+            <h2 class="section-title" style="font-size:1rem;">Ingredients</h2>
+        </div>
+
+        <div class="ingredients-header">
+            <div class="ingredients-tabs">
+                <button class="tab-btn active">Need?</button>
+                <button class="tab-btn">Items</button>
+            </div>
+        </div>
+
+        <div class="ingredient-list">
+            <div class="ingredient-item">
+                <input type="checkbox" class="ingredient-checkbox" checked>
+                <span class="ingredient-text">Item 1</span>
+            </div>
+            <div class="ingredient-item">
+                <input type="checkbox" class="ingredient-checkbox" checked>
+                <span class="ingredient-text">Item 2</span>
+            </div>
+            <div class="ingredient-item">
+                <input type="checkbox" class="ingredient-checkbox" checked>
+                <span class="ingredient-text">Item 3</span>
+            </div>
+        </div>
+
+        <div class="flex-between mt-3">
+            <div>
+                <span class="text-muted" style="font-size:0.85rem;">Accurate?</span>
+                <button class="action-btn" title="Accurate">&#128077;</button>
+                <button class="action-btn" title="Not accurate">&#128078;</button>
+            </div>
+            <button class="add-to-calendar-btn">
+                <span>&#128197;</span>
+                Add Recipe to Calendar
+            </button>
+        </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="tips mt-3">
+        <h3>Supported Sources</h3>
         <ul>
-            <li>Use direct links to recipe pages (not search results)</li>
-            <li>Works best with well-formatted recipe websites</li>
-            <li>Some blogs may require scrolling to load ingredients - try the full URL</li>
+            <li>Pinterest recipe pins</li>
+            <li>AllRecipes, Food Network, Tasty</li>
+            <li>Most food blogs with structured recipes</li>
         </ul>
     </div>
 </div>
+
+<script>
+// Drag and drop functionality
+const dropZone = document.getElementById('drop-zone');
+const urlInput = document.getElementById('url');
+
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--accent)';
+    dropZone.style.background = 'rgba(139, 195, 74, 0.1)';
+});
+
+dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = '';
+    dropZone.style.background = '';
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = '';
+    dropZone.style.background = '';
+
+    const text = e.dataTransfer.getData('text');
+    if (text && text.startsWith('http')) {
+        urlInput.value = text;
+        urlInput.focus();
+    }
+});
+
+// Also handle paste
+urlInput.addEventListener('paste', (e) => {
+    setTimeout(() => {
+        if (urlInput.value.startsWith('http')) {
+            dropZone.querySelector('.add-pin-text').textContent = 'URL Added!';
+            dropZone.style.borderColor = 'var(--accent)';
+        }
+    }, 100);
+});
+</script>
 {% endblock %}

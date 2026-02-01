@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Account - Holistic Market{% endblock %}
+
+{% block content %}
+<div class="account-page">
+    <!-- User Header -->
+    <div class="account-header">
+        <div class="user-avatar">
+            &#128100;
+        </div>
+        <div class="user-info">
+            <h2>{{ current_user.name or current_user.email.split('@')[0] }}</h2>
+            <p>{{ current_user.email }}</p>
+        </div>
+    </div>
+
+    <!-- Payment Options Section -->
+    <div class="settings-section">
+        <h3>Payment Options</h3>
+
+        <div class="card">
+            <p class="text-muted mb-2">Setup:</p>
+            <div class="payment-options">
+                <div class="payment-option selected">
+                    <div class="payment-option-icon" style="color:var(--accent);">&#9679;</div>
+                    <div class="payment-option-name">Holistic Market</div>
+                </div>
+                <div class="payment-option">
+                    <div class="payment-option-icon" style="color:#4285F4;">G</div>
+                    <div class="payment-option-name">Google</div>
+                </div>
+                <div class="payment-option">
+                    <div class="payment-option-icon" style="color:#ff9900;">&#9679;</div>
+                    <div class="payment-option-name">Amazon</div>
+                </div>
+            </div>
+
+            <p class="text-muted mb-2 mt-3">Change:</p>
+            <div class="payment-options">
+                <div class="payment-option">
+                    <div class="payment-option-icon" style="color:var(--accent);">&#9679;</div>
+                    <div class="payment-option-name">Holistic Market</div>
+                </div>
+                <div class="payment-option">
+                    <div class="payment-option-icon" style="color:#4285F4;">G</div>
+                    <div class="payment-option-name">Google</div>
+                </div>
+                <div class="payment-option">
+                    <div class="payment-option-icon" style="color:#ff9900;">&#9679;</div>
+                    <div class="payment-option-name">Amazon</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="settings-section">
+        <h3>Settings</h3>
+
+        <div class="settings-list">
+            <a href="{{ url_for('orders') }}" class="settings-item">
+                <div class="settings-item-label">
+                    <div class="settings-item-icon">&#128230;</div>
+                    <span>Order History</span>
+                </div>
+                <span class="settings-item-arrow">&#8250;</span>
+            </a>
+
+            <a href="#" class="settings-item">
+                <div class="settings-item-label">
+                    <div class="settings-item-icon">&#128179;</div>
+                    <span>Payment Methods</span>
+                </div>
+                <span class="settings-item-arrow">&#8250;</span>
+            </a>
+
+            <a href="#" class="settings-item">
+                <div class="settings-item-label">
+                    <div class="settings-item-icon">&#128205;</div>
+                    <span>Delivery Addresses</span>
+                </div>
+                <span class="settings-item-arrow">&#8250;</span>
+            </a>
+
+            <a href="#" class="settings-item">
+                <div class="settings-item-label">
+                    <div class="settings-item-icon">&#128276;</div>
+                    <span>Notifications</span>
+                </div>
+                <span class="settings-item-arrow">&#8250;</span>
+            </a>
+
+            <a href="#" class="settings-item">
+                <div class="settings-item-label">
+                    <div class="settings-item-icon">&#128274;</div>
+                    <span>Privacy & Security</span>
+                </div>
+                <span class="settings-item-arrow">&#8250;</span>
+            </a>
+
+            <a href="#" class="settings-item">
+                <div class="settings-item-label">
+                    <div class="settings-item-icon">&#128712;</div>
+                    <span>Help & Support</span>
+                </div>
+                <span class="settings-item-arrow">&#8250;</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Logout -->
+    <div class="mt-4 text-center">
+        <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+            Logout
+        </a>
+    </div>
+</div>
+{% endblock %}

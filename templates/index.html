@@ -1,59 +1,126 @@
 {% extends "base.html" %}
 
-{% block title %}LANES - Welcome{% endblock %}
+{% block title %}Welcome to Holistic Market{% endblock %}
 
 {% block content %}
-<div class="hero">
-    <h1>Welcome to LANES</h1>
-    <p class="tagline">Turn Your Favorite Recipes into Shopping Carts</p>
-    <p class="description">
-        Simply paste a recipe URL from Pinterest, AllRecipes, or your favorite food blog,
-        and we'll automatically extract the ingredients and add them to your shopping cart!
-    </p>
-    
-    <div class="cta-buttons">
-        <a href="{{ url_for('signup') }}" class="btn btn-primary">Get Started</a>
-        <a href="{{ url_for('login') }}" class="btn btn-secondary">Login</a>
+{% if not current_user.is_authenticated %}
+<!-- Welcome Screen (Not Logged In) -->
+<div class="welcome-screen">
+    <p class="welcome-title">welcome to</p>
+    <h1 class="welcome-brand">Holistic Market</h1>
+
+    <div class="welcome-buttons">
+        <a href="{{ url_for('login') }}" class="btn btn-outline btn-block">Login</a>
+        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-block">Sign Up</a>
+    </div>
+
+    <div class="welcome-links">
+        <a href="#" class="welcome-link">Forgot Password</a>
+        <a href="{{ url_for('signup') }}?google=1" class="welcome-link">Sign Up with Google</a>
     </div>
 </div>
+{% else %}
+<!-- Home Dashboard (Logged In) -->
+<div class="home-dashboard">
+    <!-- Most Popular Section -->
+    <section class="mb-4">
+        <div class="section-header">
+            <h2 class="section-title">Most Popular</h2>
+        </div>
 
-<div class="features">
-    <h2>How It Works</h2>
-    <div class="feature-grid">
-        <div class="feature">
-            <span class="icon">📝</span>
-            <h3>1. Sign Up</h3>
-            <p>Create your free account in seconds</p>
+        <div class="carousel-container">
+            <div class="carousel" id="popular-carousel">
+                <div class="carousel-item">
+                    <div style="width:100%;height:120px;background:linear-gradient(135deg,#ff6b6b,#ffa502);display:flex;align-items:center;justify-content:center;color:white;font-size:2rem;">&#127836;</div>
+                    <div class="carousel-item-info">
+                        <div class="carousel-item-title">Pasta Primavera</div>
+                        <div class="carousel-item-meta">15 ingredients</div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div style="width:100%;height:120px;background:linear-gradient(135deg,#26de81,#20bf6b);display:flex;align-items:center;justify-content:center;color:white;font-size:2rem;">&#129367;</div>
+                    <div class="carousel-item-info">
+                        <div class="carousel-item-title">Green Smoothie</div>
+                        <div class="carousel-item-meta">8 ingredients</div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div style="width:100%;height:120px;background:linear-gradient(135deg,#f7b731,#fa8231);display:flex;align-items:center;justify-content:center;color:white;font-size:2rem;">&#127828;</div>
+                    <div class="carousel-item-info">
+                        <div class="carousel-item-title">Gourmet Burger</div>
+                        <div class="carousel-item-meta">12 ingredients</div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div style="width:100%;height:120px;background:linear-gradient(135deg,#45aaf2,#2d98da);display:flex;align-items:center;justify-content:center;color:white;font-size:2rem;">&#127843;</div>
+                    <div class="carousel-item-info">
+                        <div class="carousel-item-title">Sushi Rolls</div>
+                        <div class="carousel-item-meta">10 ingredients</div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div style="width:100%;height:120px;background:linear-gradient(135deg,#a55eea,#8854d0);display:flex;align-items:center;justify-content:center;color:white;font-size:2rem;">&#127856;</div>
+                    <div class="carousel-item-info">
+                        <div class="carousel-item-title">Chocolate Cake</div>
+                        <div class="carousel-item-meta">14 ingredients</div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-controls">
+                <button class="carousel-dot active"></button>
+                <button class="carousel-dot"></button>
+                <button class="carousel-dot"></button>
+            </div>
         </div>
-        <div class="feature">
-            <span class="icon">🔗</span>
-            <h3>2. Paste Recipe URL</h3>
-            <p>Add any recipe from Pinterest or food blogs</p>
-        </div>
-        <div class="feature">
-            <span class="icon">🤖</span>
-            <h3>3. AI Extracts Ingredients</h3>
-            <p>Our smart parser identifies all ingredients</p>
-        </div>
-        <div class="feature">
-            <span class="icon">🛒</span>
-            <h3>4. Build Your Cart</h3>
-            <p>Review and manage your shopping list</p>
-        </div>
-    </div>
-</div>
+    </section>
 
-<div class="about">
-    <h2>About the Parser</h2>
-    <p>
-        Our advanced recipe parser uses natural language processing (NLP) to intelligently
-        identify ingredients in recipe text. It understands:
-    </p>
-    <ul>
-        <li>Common ingredient names and variations</li>
-        <li>Quantities and measurements (cups, tablespoons, grams, etc.)</li>
-        <li>Ingredient modifiers (chopped, diced, fresh, etc.)</li>
-        <li>Recipe-specific language patterns</li>
-    </ul>
+    <!-- Quick Actions -->
+    <section class="mb-4">
+        <div class="section-header">
+            <h2 class="section-title">Quick Actions</h2>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <a href="{{ url_for('parse_recipe') }}" class="card" style="text-decoration:none;text-align:center;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">&#10133;</div>
+                <div style="color:var(--text-white);font-weight:600;">Add Pin</div>
+                <div style="color:var(--text-muted);font-size:0.85rem;">Import a recipe</div>
+            </a>
+            <a href="{{ url_for('cart') }}" class="card" style="text-decoration:none;text-align:center;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">&#128722;</div>
+                <div style="color:var(--text-white);font-weight:600;">View Cart</div>
+                <div style="color:var(--text-muted);font-size:0.85rem;">Checkout items</div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Recent Recipes -->
+    <section class="mb-4">
+        <div class="section-header">
+            <h2 class="section-title">Your Recipes</h2>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-secondary">View All</a>
+        </div>
+
+        <div class="recipe-grid">
+            {% set recipes = current_user.recipes if current_user.recipes else [] %}
+            {% if recipes %}
+                {% for recipe in recipes[:3] %}
+                <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="recipe-card" style="text-decoration:none;">
+                    <h3>{{ recipe.title }}</h3>
+                    <span class="recipe-url">{{ recipe.url|truncate(40) }}</span>
+                    <div class="recipe-meta">
+                        <span>{{ recipe.ingredients|length }} ingredients</span>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state" style="grid-column:1/-1;">
+                    <p>No recipes yet. Add your first recipe pin!</p>
+                    <a href="{{ url_for('parse_recipe') }}" class="btn btn-primary">Add Pin</a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
 </div>
+{% endif %}
 {% endblock %}

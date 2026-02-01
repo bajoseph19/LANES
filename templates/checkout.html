@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - LANES{% endblock %}
+
+{% block content %}
+<div class="checkout-page">
+    <h1>Checkout with Amazon Fresh</h1>
+
+    <div class="checkout-container">
+        <div class="checkout-form-section">
+            <h2>Shipping Information</h2>
+            <p class="form-description">Please provide your delivery details</p>
+
+            <form method="POST" class="checkout-form">
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name"
+                           value="{{ user.name or '' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email"
+                           value="{{ user.email or '' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Delivery Address *</label>
+                    <textarea id="address" name="address" rows="3" required>{{ user.address or '' }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone"
+                           value="{{ user.phone or '' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment_method">Payment Method *</label>
+                    <select id="payment_method" name="payment_method">
+                        <option value="credit_card">Credit Card</option>
+                        <option value="amazon_pay">Amazon Pay</option>
+                        <option value="debit_card">Debit Card</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-amazon">
+                    Place Order with Amazon Fresh
+                </button>
+            </form>
+        </div>
+
+        <div class="order-summary-section">
+            <h2>Order Summary</h2>
+
+            <div class="summary-items">
+                {% for item in cart_items %}
+                <div class="summary-item">
+                    <span class="item-name">{{ item.text[:50] }}{% if item.text|length > 50 %}...{% endif %}</span>
+                    {% if amazon_data %}
+                    <span class="item-price">${{ amazon_data.products[loop.index0].subtotal|round(2) }}</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if amazon_data %}
+            <div class="summary-totals">
+                <div class="summary-row">
+                    <span>Subtotal ({{ amazon_data.item_count }} items)</span>
+                    <span>${{ amazon_data.subtotal }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Estimated Tax</span>
+                    <span>${{ amazon_data.tax }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery Fee</span>
+                    <span>{% if amazon_data.delivery_fee == 0 %}FREE{% else %}${{ amazon_data.delivery_fee }}{% endif %}</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>${{ amazon_data.total }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="fulfillment-info">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/120px-Amazon_logo.svg.png"
+                     alt="Amazon Fresh" class="amazon-logo">
+                <p>Fulfilled by Amazon Fresh</p>
+                <p class="delivery-estimate">Estimated delivery: 2-4 hours</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.checkout-page h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.checkout-container {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+    .checkout-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.checkout-form-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.checkout-form-section h2 {
+    margin-bottom: 0.5rem;
+}
+
+.form-description {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.checkout-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.checkout-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.checkout-form input,
+.checkout-form textarea,
+.checkout-form select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.checkout-form input:focus,
+.checkout-form textarea:focus,
+.checkout-form select:focus {
+    outline: none;
+    border-color: #ff9900;
+    box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.2);
+}
+
+.btn-amazon {
+    background: #ff9900;
+    color: #111;
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-amazon:hover {
+    background: #e68a00;
+}
+
+.order-summary-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    height: fit-content;
+}
+
+.order-summary-section h2 {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.summary-items {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.item-name {
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.item-price {
+    font-weight: 600;
+    margin-left: 1rem;
+}
+
+.summary-totals {
+    border-top: 2px solid #ddd;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.summary-row.total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-top: 2px solid #333;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+}
+
+.fulfillment-info {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ddd;
+}
+
+.amazon-logo {
+    max-width: 100px;
+    margin-bottom: 0.5rem;
+}
+
+.fulfillment-info p {
+    margin: 0.25rem 0;
+    color: #666;
+}
+
+.delivery-estimate {
+    color: #2e7d32 !important;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
