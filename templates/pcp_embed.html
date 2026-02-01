@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}Embed Code - LANES{% endblock %}
+
+{% block content %}
+<div class="embed-page">
+    <h1>Widget Embed Code</h1>
+    <p class="subtitle">Add the Holistic Market widget to your recipe pages on <strong>{{ pcp.domain }}</strong></p>
+
+    <div class="embed-section">
+        <h2>Copy This Code</h2>
+        <p>Add this code to your recipe page HTML, preferably near the ingredients section:</p>
+
+        <div class="code-block">
+            <pre id="embed-code">{{ embed_code }}</pre>
+            <button onclick="copyEmbedCode()" class="btn btn-primary copy-btn">Copy Code</button>
+        </div>
+    </div>
+
+    <div class="preview-section">
+        <h2>Widget Preview</h2>
+        <div class="widget-preview">
+            <div class="preview-widget">
+                <div class="preview-header">
+                    <span class="preview-logo">Holistic Market</span>
+                </div>
+                <div class="preview-body">
+                    <p class="preview-title">Buy Ingredients</p>
+                    <p class="preview-subtitle">Get everything you need delivered from Amazon Fresh</p>
+                    <button class="preview-button">Shop Ingredients</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="integration-guide">
+        <h2>Integration Guide</h2>
+
+        <div class="guide-step">
+            <h3>1. Basic Integration</h3>
+            <p>For most recipe pages, simply paste the embed code anywhere in your HTML body. The widget will automatically detect the page URL and fetch ingredients.</p>
+        </div>
+
+        <div class="guide-step">
+            <h3>2. WordPress Integration</h3>
+            <p>If using WordPress, you can add the code to your theme's single post template or use a Custom HTML widget/block.</p>
+            <pre><code>&lt;!-- Add to single.php or recipe template --&gt;
+&lt;?php if (is_singular('recipe')) : ?&gt;
+{{ embed_code | e }}
+&lt;?php endif; ?&gt;</code></pre>
+        </div>
+
+        <div class="guide-step">
+            <h3>3. Testing</h3>
+            <p>After adding the widget code:</p>
+            <ol>
+                <li>Visit one of your recipe pages</li>
+                <li>Verify the widget appears correctly</li>
+                <li>Click the widget to test the checkout flow</li>
+            </ol>
+        </div>
+
+        <div class="guide-step">
+            <h3>4. Customization (Optional)</h3>
+            <p>You can pass additional configuration options:</p>
+            <pre><code>&lt;div id="holistic-market-widget"
+     data-api-key="{{ pcp.api_key }}"
+     data-theme="light"
+     data-position="sidebar"&gt;
+&lt;/div&gt;</code></pre>
+        </div>
+    </div>
+
+    <div class="support-section">
+        <h2>Need Help?</h2>
+        <p>If you encounter any issues with the widget integration, please contact our support team.</p>
+        <a href="mailto:support@holisticmarket.com" class="btn btn-secondary">Contact Support</a>
+    </div>
+</div>
+
+<style>
+.embed-page {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.embed-page h1 {
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.embed-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.embed-section h2 {
+    margin-bottom: 0.5rem;
+}
+
+.code-block {
+    position: relative;
+    background: #1e1e1e;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.code-block pre {
+    color: #d4d4d4;
+    padding: 1.5rem;
+    overflow-x: auto;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+.preview-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.widget-preview {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.preview-widget {
+    width: 300px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    overflow: hidden;
+}
+
+.preview-header {
+    background: #4a6fa5;
+    color: white;
+    padding: 0.75rem 1rem;
+    text-align: center;
+}
+
+.preview-logo {
+    font-weight: 600;
+}
+
+.preview-body {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.preview-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.preview-subtitle {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.preview-button {
+    background: #ff9900;
+    color: #111;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.integration-guide {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.integration-guide h2 {
+    margin-bottom: 1.5rem;
+}
+
+.guide-step {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #eee;
+}
+
+.guide-step:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.guide-step h3 {
+    color: #4a6fa5;
+    margin-bottom: 0.5rem;
+}
+
+.guide-step pre {
+    background: #f5f5f5;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+.guide-step code {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+}
+
+.guide-step ol {
+    margin-top: 0.5rem;
+    padding-left: 1.5rem;
+}
+
+.support-section {
+    text-align: center;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.support-section h2 {
+    margin-bottom: 0.5rem;
+}
+
+.support-section p {
+    margin-bottom: 1rem;
+    color: #666;
+}
+</style>
+
+<script>
+function copyEmbedCode() {
+    const code = document.getElementById('embed-code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        alert('Embed code copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

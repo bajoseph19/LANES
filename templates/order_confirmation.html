@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmed - LANES{% endblock %}
+
+{% block content %}
+<div class="confirmation-page">
+    <div class="confirmation-header">
+        <div class="success-icon">✓</div>
+        <h1>Order Confirmed!</h1>
+        <p class="order-number">Order #{{ order.order_number }}</p>
+    </div>
+
+    <div class="confirmation-content">
+        <div class="confirmation-message">
+            <p>Thank you for your order! Your groceries are being prepared by Amazon Fresh.</p>
+            <p class="delivery-estimate">Estimated delivery: <strong>2-4 hours</strong></p>
+        </div>
+
+        <div class="confirmation-details">
+            <div class="detail-section">
+                <h3>Shipping To</h3>
+                <p>{{ summary.shipping.name }}</p>
+                <p>{{ summary.shipping.address }}</p>
+                <p>{{ summary.shipping.phone }}</p>
+                <p>{{ summary.shipping.email }}</p>
+            </div>
+
+            <div class="detail-section">
+                <h3>Order Items</h3>
+                <div class="order-items">
+                    {% for item in summary.items %}
+                    <div class="order-item">
+                        <div class="item-info">
+                            <span class="item-ingredient">{{ item.ingredient }}</span>
+                            <span class="item-product">{{ item.product }}</span>
+                        </div>
+                        <span class="item-price">${{ item.price|round(2) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="detail-section order-totals">
+                <div class="total-row">
+                    <span>Subtotal</span>
+                    <span>${{ summary.subtotal|round(2) }}</span>
+                </div>
+                <div class="total-row">
+                    <span>Tax</span>
+                    <span>${{ summary.tax|round(2) }}</span>
+                </div>
+                <div class="total-row">
+                    <span>Delivery</span>
+                    <span>{% if summary.shipping_cost == 0 %}FREE{% else %}${{ summary.shipping_cost|round(2) }}{% endif %}</span>
+                </div>
+                <div class="total-row grand-total">
+                    <span>Total</span>
+                    <span>${{ summary.total|round(2) }}</span>
+                </div>
+            </div>
+
+            <div class="detail-section fulfillment">
+                <h3>Fulfillment Partner</h3>
+                <div class="fulfillment-badge">
+                    <span class="badge amazon">Amazon Fresh</span>
+                    {% if summary.external_order_id %}
+                    <p class="external-id">Amazon Order ID: {{ summary.external_order_id }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="confirmation-actions">
+            <a href="{{ url_for('orders') }}" class="btn btn-primary">View All Orders</a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.confirmation-page {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.confirmation-header {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: white;
+    color: #2e7d32;
+    border-radius: 50%;
+    font-size: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.confirmation-header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.order-number {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-top: 0.5rem;
+}
+
+.confirmation-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.confirmation-message {
+    text-align: center;
+    padding: 1.5rem;
+    background: #e8f5e9;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.delivery-estimate {
+    color: #2e7d32;
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+}
+
+.detail-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-section h3 {
+    font-size: 1rem;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.order-items {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.item-ingredient {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.item-product {
+    font-weight: 500;
+}
+
+.item-price {
+    font-weight: 600;
+}
+
+.order-totals {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.grand-total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-top: 2px solid #ddd;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+}
+
+.fulfillment-badge {
+    text-align: center;
+}
+
+.badge.amazon {
+    display: inline-block;
+    background: #ff9900;
+    color: #111;
+    padding: 0.5rem 1.5rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.external-id {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.confirmation-actions .btn {
+    padding: 0.75rem 2rem;
+}
+</style>
+{% endblock %}
