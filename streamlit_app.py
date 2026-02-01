@@ -72,13 +72,39 @@ def builtin_get_ingredients(url):
         from bs4 import BeautifulSoup
         import json
         import re
+        from urllib.parse import urlparse
 
+        # Parse URL to get domain for referer
+        parsed_url = urlparse(url)
+        domain = f"{parsed_url.scheme}://{parsed_url.netloc}"
+
+        # Comprehensive headers to mimic a real browser
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Cache-Control': 'max-age=0',
+            'Referer': domain,
         }
-        response = requests.get(url, headers=headers, timeout=15)
+
+        # Use session for better cookie handling
+        session = requests.Session()
+        response = session.get(url, headers=headers, timeout=20, allow_redirects=True)
+
+        # If still blocked, try without some headers
+        if response.status_code == 403:
+            simple_headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+            }
+            response = session.get(url, headers=simple_headers, timeout=20)
+
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -248,6 +274,61 @@ def builtin_get_ingredients(url):
                         ingredients.append(text)
                 if len(ingredients) >= 3:
                     return ingredients[:50]
+
+        # ================================================================
+        # Strategy 6: Find any list on page with food-like items
+        # ================================================================
+        food_indicators = ['cup', 'tbsp', 'tsp', 'tablespoon', 'teaspoon', 'oz', 'ounce',
+                          'pound', 'lb', 'gram', 'kg', 'ml', 'liter', 'pinch', 'dash',
+                          'chopped', 'diced', 'minced', 'sliced', 'fresh', 'dried',
+                          'salt', 'pepper', 'sugar', 'flour', 'butter', 'oil', 'egg',
+                          'milk', 'cream', 'cheese', 'chicken', 'beef', 'pork', 'fish',
+                          'onion', 'garlic', 'tomato', 'potato', 'carrot', 'celery']
+
+        all_lists = soup.find_all(['ul', 'ol'])
+        for lst in all_lists:
+            list_items = []
+            for li in lst.find_all('li', recursive=False):
+                text = li.get_text(strip=True)
+                text = re.sub(r'\s+', ' ', text)
+                if text and 3 < len(text) < 200:
+                    # Check if it looks like an ingredient
+                    text_lower = text.lower()
+                    if any(indicator in text_lower for indicator in food_indicators):
+                        list_items.append(text)
+                    # Also check for number at start (like "2 cups flour")
+                    elif re.match(r'^[\d½¼¾⅓⅔⅛]+', text):
+                        list_items.append(text)
+
+            if len(list_items) >= 3:
+                ingredients = list_items
+                return ingredients[:50]
+
+        # ================================================================
+        # Strategy 7: Look for paragraph text with ingredient patterns
+        # ================================================================
+        # Find the main content area
+        main_content = soup.find(['article', 'main', '.post-content', '.entry-content', '.content'])
+        if not main_content:
+            main_content = soup.find('body')
+
+        if main_content:
+            # Look for text blocks that might list ingredients
+            for elem in main_content.find_all(['p', 'div']):
+                text = elem.get_text(strip=True)
+                # Check if this paragraph contains a list of ingredients
+                if 'ingredient' in text.lower() and len(text) < 2000:
+                    # Try to split by common delimiters
+                    lines = re.split(r'[,\n•·–-]', text)
+                    for line in lines:
+                        line = line.strip()
+                        if line and 3 < len(line) < 150:
+                            line_lower = line.lower()
+                            if any(indicator in line_lower for indicator in food_indicators):
+                                ingredients.append(line)
+
+                    if len(ingredients) >= 3:
+                        return ingredients[:50]
 
         return ingredients[:50]
 
