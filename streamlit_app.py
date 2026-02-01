@@ -582,7 +582,7 @@ def render_header():
 
 def render_bottom_nav():
     """Render bottom navigation"""
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
         if st.button("🏠 Main", key="nav_home", use_container_width=True):
@@ -590,16 +590,21 @@ def render_bottom_nav():
             st.rerun()
 
     with col2:
-        if st.button("📌 Add Pin", key="nav_add", use_container_width=True):
+        if st.button("📌 Add", key="nav_add", use_container_width=True):
             st.session_state.current_page = 'add_pin'
             st.rerun()
 
     with col3:
+        if st.button("📋 Samples", key="nav_samples", use_container_width=True):
+            st.session_state.current_page = 'samples'
+            st.rerun()
+
+    with col4:
         if st.button("🛒 Cart", key="nav_cart", use_container_width=True):
             st.session_state.current_page = 'cart'
             st.rerun()
 
-    with col4:
+    with col5:
         if st.button("👤 Account", key="nav_account", use_container_width=True):
             st.session_state.current_page = 'account'
             st.rerun()
@@ -783,16 +788,38 @@ def add_pin_page():
     render_header()
 
     st.markdown("<h1>Add Recipe Pin</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='text-muted'>Paste a recipe URL to extract ingredients</p>", unsafe_allow_html=True)
+    st.markdown("<p class='text-muted'>Paste a recipe URL or get a random sample</p>", unsafe_allow_html=True)
 
-    # URL input
-    url = st.text_input("Recipe URL", placeholder="https://example.com/recipe", label_visibility="collapsed")
+    # Initialize random_url in session state if not exists
+    if 'random_url' not in st.session_state:
+        st.session_state.random_url = ""
+
+    # Get Random Recipe button
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        if st.button("🎲 Get Recipe", use_container_width=True):
+            # Load a random URL from urls.csv
+            try:
+                import random
+                urls_file = os.path.join(os.path.dirname(__file__), 'urls.csv')
+                if os.path.exists(urls_file):
+                    with open(urls_file, 'r', encoding='utf-8', errors='ignore') as f:
+                        urls = [line.strip() for line in f if line.strip() and line.startswith('http')]
+                    if urls:
+                        st.session_state.random_url = random.choice(urls)
+                        st.rerun()
+            except:
+                pass
+
+    # URL input - use random_url if available
+    with col1:
+        url = st.text_input("Recipe URL", value=st.session_state.random_url, placeholder="https://example.com/recipe", label_visibility="collapsed")
 
     st.markdown("""
     <div class="card" style="text-align: center; border: 2px dashed rgba(139, 195, 74, 0.5); background: transparent;">
         <div style="font-size: 3rem; margin-bottom: 1rem;">📌</div>
         <p>Drag & drop a recipe link here</p>
-        <p class="text-muted">or paste the URL above</p>
+        <p class="text-muted">or click "Get Recipe" for a random sample</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -831,6 +858,7 @@ def add_pin_page():
                             })
 
                         st.success(f"Extracted {len(ingredients)} ingredients!")
+                        st.session_state.random_url = ""  # Clear for next use
                         st.session_state.current_page = 'cart'
                         st.rerun()
                     else:
@@ -1022,6 +1050,76 @@ def account_page():
     st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
     render_bottom_nav()
 
+def sample_recipes_page():
+    """Sample recipes page with URLs from urls.csv"""
+    render_header()
+
+    st.markdown("<h1>Sample Recipes</h1>", unsafe_allow_html=True)
+    st.markdown("<p class='text-muted'>Copy a URL and paste it in Add Pin to try the app</p>", unsafe_allow_html=True)
+
+    # Load URLs from file
+    urls = []
+    try:
+        urls_file = os.path.join(os.path.dirname(__file__), 'urls.csv')
+        if os.path.exists(urls_file):
+            with open(urls_file, 'r', encoding='utf-8', errors='ignore') as f:
+                urls = [line.strip() for line in f if line.strip() and line.startswith('http')]
+    except:
+        pass
+
+    if urls:
+        # Search/filter
+        search = st.text_input("🔍 Search recipes", placeholder="e.g., chicken, pasta, cake...")
+
+        # Filter URLs
+        if search:
+            filtered_urls = [u for u in urls if search.lower() in u.lower()]
+        else:
+            filtered_urls = urls
+
+        st.markdown(f"<p class='text-muted'>Showing {min(50, len(filtered_urls))} of {len(filtered_urls)} recipes</p>", unsafe_allow_html=True)
+
+        # Display URLs (limit to 50 for performance)
+        for idx, url in enumerate(filtered_urls[:50]):
+            # Extract recipe name from URL
+            try:
+                from urllib.parse import urlparse
+                parsed = urlparse(url)
+                path_parts = [p for p in parsed.path.split('/') if p]
+                if path_parts:
+                    name = path_parts[-1].replace('-', ' ').replace('_', ' ').title()[:40]
+                else:
+                    name = parsed.netloc
+            except:
+                name = url[:40]
+
+            col1, col2 = st.columns([4, 1])
+            with col1:
+                st.markdown(f"""
+                <div class="card" style="padding: 0.75rem;">
+                    <div style="font-weight: 500; color: #ffffff; margin-bottom: 0.25rem;">{name}</div>
+                    <div style="font-size: 0.75rem; color: #8bc34a; word-break: break-all;">{url[:60]}...</div>
+                </div>
+                """, unsafe_allow_html=True)
+            with col2:
+                if st.button("📋 Copy", key=f"copy_{idx}", use_container_width=True):
+                    st.session_state.copied_url = url
+                    st.toast(f"Copied! Go to Add Pin to paste.")
+
+        # Show copied URL
+        if 'copied_url' in st.session_state and st.session_state.copied_url:
+            st.markdown(f"""
+            <div style="background: rgba(139, 195, 74, 0.2); border: 1px solid #8bc34a; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                <p style="margin: 0; font-size: 0.9rem;"><strong>Copied URL:</strong></p>
+                <p style="margin: 0.25rem 0; font-size: 0.8rem; word-break: break-all;">{st.session_state.copied_url}</p>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.warning("No sample recipes found. Make sure urls.csv exists in the app directory.")
+
+    st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
+    render_bottom_nav()
+
 # ============================================================================
 # Main App Logic
 # ============================================================================
@@ -1038,6 +1136,8 @@ def main():
             home_page()
         elif st.session_state.current_page == 'add_pin':
             add_pin_page()
+        elif st.session_state.current_page == 'samples':
+            sample_recipes_page()
         elif st.session_state.current_page == 'cart':
             cart_page()
         elif st.session_state.current_page == 'account':
