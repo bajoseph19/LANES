@@ -788,16 +788,38 @@ def add_pin_page():
     render_header()
 
     st.markdown("<h1>Add Recipe Pin</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='text-muted'>Paste a recipe URL to extract ingredients</p>", unsafe_allow_html=True)
+    st.markdown("<p class='text-muted'>Paste a recipe URL or get a random sample</p>", unsafe_allow_html=True)
 
-    # URL input
-    url = st.text_input("Recipe URL", placeholder="https://example.com/recipe", label_visibility="collapsed")
+    # Initialize random_url in session state if not exists
+    if 'random_url' not in st.session_state:
+        st.session_state.random_url = ""
+
+    # Get Random Recipe button
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        if st.button("🎲 Get Recipe", use_container_width=True):
+            # Load a random URL from urls.csv
+            try:
+                import random
+                urls_file = os.path.join(os.path.dirname(__file__), 'urls.csv')
+                if os.path.exists(urls_file):
+                    with open(urls_file, 'r', encoding='utf-8', errors='ignore') as f:
+                        urls = [line.strip() for line in f if line.strip() and line.startswith('http')]
+                    if urls:
+                        st.session_state.random_url = random.choice(urls)
+                        st.rerun()
+            except:
+                pass
+
+    # URL input - use random_url if available
+    with col1:
+        url = st.text_input("Recipe URL", value=st.session_state.random_url, placeholder="https://example.com/recipe", label_visibility="collapsed")
 
     st.markdown("""
     <div class="card" style="text-align: center; border: 2px dashed rgba(139, 195, 74, 0.5); background: transparent;">
         <div style="font-size: 3rem; margin-bottom: 1rem;">📌</div>
         <p>Drag & drop a recipe link here</p>
-        <p class="text-muted">or paste the URL above</p>
+        <p class="text-muted">or click "Get Recipe" for a random sample</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -836,6 +858,7 @@ def add_pin_page():
                             })
 
                         st.success(f"Extracted {len(ingredients)} ingredients!")
+                        st.session_state.random_url = ""  # Clear for next use
                         st.session_state.current_page = 'cart'
                         st.rerun()
                     else:
