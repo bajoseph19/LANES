@@ -54,6 +54,69 @@ except Exception as e:
     parser = None
 
 # ============================================================================
+# Load Food Words and Collection Words from CSV files
+# ============================================================================
+
+def load_food_words():
+    """Load food words from CSV files for better ingredient detection"""
+    food_words = set()
+    coll_words = set()
+
+    # Load food_words_.csv
+    try:
+        food_file = os.path.join(os.path.dirname(__file__), 'food_words_.csv')
+        if os.path.exists(food_file):
+            with open(food_file, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    word = line.strip().lower()
+                    if word and len(word) > 1:
+                        food_words.add(word)
+    except:
+        pass
+
+    # Load coll_words_.csv (collection/compound words)
+    try:
+        coll_file = os.path.join(os.path.dirname(__file__), 'coll_words_.csv')
+        if os.path.exists(coll_file):
+            with open(coll_file, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    word = line.strip().lower()
+                    if word and len(word) > 1:
+                        coll_words.add(word)
+                        # Also add individual words
+                        for w in word.split():
+                            if len(w) > 2:
+                                food_words.add(w)
+    except:
+        pass
+
+    # Add common measurement words
+    measurements = {
+        'cup', 'cups', 'tablespoon', 'tablespoons', 'tbsp', 'teaspoon', 'teaspoons', 'tsp',
+        'ounce', 'ounces', 'oz', 'pound', 'pounds', 'lb', 'lbs', 'gram', 'grams', 'g',
+        'kilogram', 'kilograms', 'kg', 'liter', 'liters', 'ml', 'milliliter', 'milliliters',
+        'pinch', 'dash', 'bunch', 'clove', 'cloves', 'slice', 'slices', 'piece', 'pieces',
+        'can', 'cans', 'package', 'packages', 'bag', 'bags', 'box', 'boxes', 'jar', 'jars',
+        'bottle', 'bottles', 'handful', 'sprig', 'sprigs', 'head', 'heads', 'stalk', 'stalks'
+    }
+
+    # Add prep words
+    prep_words = {
+        'chopped', 'diced', 'minced', 'sliced', 'grated', 'shredded', 'crushed', 'ground',
+        'fresh', 'dried', 'frozen', 'canned', 'cooked', 'raw', 'peeled', 'seeded', 'pitted',
+        'halved', 'quartered', 'cubed', 'julienned', 'melted', 'softened', 'room temperature',
+        'finely', 'roughly', 'thinly', 'thickly', 'small', 'medium', 'large', 'optional'
+    }
+
+    return food_words, coll_words, measurements, prep_words
+
+# Load food data at module level
+FOOD_WORDS, COLL_WORDS, MEASUREMENTS, PREP_WORDS = load_food_words()
+
+# Combined set for quick lookup
+ALL_FOOD_INDICATORS = FOOD_WORDS | MEASUREMENTS | PREP_WORDS
+
+# ============================================================================
 # Built-in Fallback Parser (when recipe_parser.py fails)
 # ============================================================================
 
@@ -72,13 +135,39 @@ def builtin_get_ingredients(url):
         from bs4 import BeautifulSoup
         import json
         import re
+        from urllib.parse import urlparse
 
+        # Parse URL to get domain for referer
+        parsed_url = urlparse(url)
+        domain = f"{parsed_url.scheme}://{parsed_url.netloc}"
+
+        # Comprehensive headers to mimic a real browser
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Cache-Control': 'max-age=0',
+            'Referer': domain,
         }
-        response = requests.get(url, headers=headers, timeout=15)
+
+        # Use session for better cookie handling
+        session = requests.Session()
+        response = session.get(url, headers=headers, timeout=20, allow_redirects=True)
+
+        # If still blocked, try without some headers
+        if response.status_code == 403:
+            simple_headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+            }
+            response = session.get(url, headers=simple_headers, timeout=20)
+
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -248,6 +337,72 @@ def builtin_get_ingredients(url):
                         ingredients.append(text)
                 if len(ingredients) >= 3:
                     return ingredients[:50]
+
+        # ================================================================
+        # Strategy 6: Find any list on page with food-like items
+        # Uses loaded food words from CSV files
+        # ================================================================
+        def is_likely_ingredient(text):
+            """Check if text looks like an ingredient using loaded food words"""
+            text_lower = text.lower()
+            words = text_lower.split()
+
+            # Check for food words from CSV
+            for word in words:
+                word_clean = re.sub(r'[^a-z]', '', word)
+                if word_clean in ALL_FOOD_INDICATORS:
+                    return True
+
+            # Check for correlated word pairs
+            for i in range(len(words) - 1):
+                pair = f"{words[i]} {words[i+1]}"
+                if pair in COLL_WORDS:
+                    return True
+
+            # Check for number at start (like "2 cups flour")
+            if re.match(r'^[\d½¼¾⅓⅔⅛]+', text):
+                return True
+
+            return False
+
+        all_lists = soup.find_all(['ul', 'ol'])
+        for lst in all_lists:
+            list_items = []
+            for li in lst.find_all('li', recursive=False):
+                text = li.get_text(strip=True)
+                text = re.sub(r'\s+', ' ', text)
+                if text and 3 < len(text) < 200:
+                    if is_likely_ingredient(text):
+                        list_items.append(text)
+
+            if len(list_items) >= 3:
+                ingredients = list_items
+                return ingredients[:50]
+
+        # ================================================================
+        # Strategy 7: Look for paragraph text with ingredient patterns
+        # ================================================================
+        # Find the main content area
+        main_content = soup.find(['article', 'main', '.post-content', '.entry-content', '.content'])
+        if not main_content:
+            main_content = soup.find('body')
+
+        if main_content:
+            # Look for text blocks that might list ingredients
+            for elem in main_content.find_all(['p', 'div']):
+                text = elem.get_text(strip=True)
+                # Check if this paragraph contains a list of ingredients
+                if 'ingredient' in text.lower() and len(text) < 2000:
+                    # Try to split by common delimiters
+                    lines = re.split(r'[,\n•·–-]', text)
+                    for line in lines:
+                        line = line.strip()
+                        if line and 3 < len(line) < 150:
+                            if is_likely_ingredient(line):
+                                ingredients.append(line)
+
+                    if len(ingredients) >= 3:
+                        return ingredients[:50]
 
         return ingredients[:50]
 
