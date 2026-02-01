@@ -354,6 +354,13 @@ def orders():
     return render_template('orders.html', orders=user_orders)
 
 
+@app.route('/account')
+@login_required
+def account():
+    """User account page with settings and payment options"""
+    return render_template('account.html')
+
+
 # ============================================================================
 # Widget API Routes (for PCP integration)
 # ============================================================================

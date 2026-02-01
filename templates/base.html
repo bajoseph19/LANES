@@ -3,30 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}LANES - Recipe to Cart{% endblock %}</title>
+    <title>{% block title %}Holistic Market{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    </style>
 </head>
 <body>
-    <nav class="navbar">
+    <!-- Top Header -->
+    <header class="top-header">
         <div class="container">
-            <a href="{{ url_for('index') }}" class="logo">🍳 LANES</a>
-            <ul class="nav-menu">
+            <a href="{{ url_for('index') }}" class="logo">
+                <span class="logo-icon">HM</span>
+                <span>Holistic Market</span>
+            </a>
+            <div class="header-actions">
                 {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                    <li><a href="{{ url_for('parse_recipe') }}">Add Recipe</a></li>
-                    <li><a href="{{ url_for('cart') }}">Cart</a></li>
-                    <li><a href="{{ url_for('orders') }}">Orders</a></li>
-                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
-                {% else %}
-                    <li><a href="{{ url_for('login') }}">Login</a></li>
-                    <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
-                    <li><a href="{{ url_for('pcp_register') }}">Partners</a></li>
+                    <span class="user-welcome">Welcome, <strong>{{ current_user.name or current_user.email.split('@')[0] }}</strong></span>
                 {% endif %}
-            </ul>
+            </div>
         </div>
-    </nav>
+    </header>
 
-    <main class="container">
+    <!-- Main Content -->
+    <main class="container page-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -40,10 +43,41 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 LANES - Recipe Parser. Transform recipes into shopping carts.</p>
-        </div>
-    </footer>
+    <!-- Bottom Navigation (App-style) -->
+    {% if current_user.is_authenticated %}
+    <nav class="bottom-nav">
+        <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <span class="nav-icon">&#127968;</span>
+            <span class="nav-label">Main</span>
+        </a>
+        <a href="{{ url_for('parse_recipe') }}" class="nav-item {% if request.endpoint == 'parse_recipe' %}active{% endif %}">
+            <span class="nav-icon">&#10133;</span>
+            <span class="nav-label">Add Pin</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item {% if request.endpoint == 'cart' %}active{% endif %}">
+            <span class="nav-icon">&#128722;</span>
+            <span class="nav-label">Cart</span>
+        </a>
+        <a href="{{ url_for('account') }}" class="nav-item {% if request.endpoint == 'account' %}active{% endif %}">
+            <span class="nav-icon">&#128100;</span>
+            <span class="nav-label">Account</span>
+        </a>
+    </nav>
+    {% endif %}
+
+    <script>
+    // Global JavaScript utilities
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-hide alerts after 5 seconds
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s';
+                setTimeout(() => alert.remove(), 500);
+            }, 5000);
+        });
+    });
+    </script>
 </body>
 </html>
