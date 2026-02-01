@@ -58,49 +58,217 @@ except Exception as e:
 # ============================================================================
 
 def builtin_get_ingredients(url):
-    """Simple built-in ingredient extractor as fallback"""
+    """
+    Comprehensive ingredient extractor using modern schema.org standards.
+
+    Extraction priority:
+    1. JSON-LD structured data (schema.org/Recipe) - most reliable
+    2. Microdata (itemprop="recipeIngredient")
+    3. Common recipe plugin selectors (WPRM, Tasty, etc.)
+    4. Generic CSS selectors
+    """
     try:
         import requests
         from bs4 import BeautifulSoup
+        import json
+        import re
 
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        response = requests.get(url, headers=headers, timeout=10)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+        }
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
         ingredients = []
 
-        # Try common selectors
-        selectors = [
+        # ================================================================
+        # Strategy 1: JSON-LD Structured Data (schema.org Recipe)
+        # This is the modern standard used by most recipe sites
+        # ================================================================
+        for script in soup.find_all('script', type='application/ld+json'):
+            try:
+                data = json.loads(script.string)
+
+                # Handle both single object and array of objects
+                if isinstance(data, list):
+                    items = data
+                else:
+                    items = [data]
+
+                for item in items:
+                    # Check if it's a Recipe directly
+                    if item.get('@type') == 'Recipe' or 'Recipe' in str(item.get('@type', '')):
+                        recipe_ingredients = item.get('recipeIngredient', [])
+                        if recipe_ingredients:
+                            ingredients = recipe_ingredients if isinstance(recipe_ingredients, list) else [recipe_ingredients]
+                            break
+
+                    # Check @graph structure (common in WordPress)
+                    if '@graph' in item:
+                        for graph_item in item['@graph']:
+                            if graph_item.get('@type') == 'Recipe' or 'Recipe' in str(graph_item.get('@type', '')):
+                                recipe_ingredients = graph_item.get('recipeIngredient', [])
+                                if recipe_ingredients:
+                                    ingredients = recipe_ingredients if isinstance(recipe_ingredients, list) else [recipe_ingredients]
+                                    break
+
+                if ingredients:
+                    break
+            except (json.JSONDecodeError, TypeError, AttributeError):
+                continue
+
+        if ingredients:
+            # Clean up JSON-LD ingredients
+            cleaned = []
+            for ing in ingredients:
+                if isinstance(ing, str):
+                    text = ing.strip()
+                    if text and len(text) > 1:
+                        cleaned.append(text)
+            if cleaned:
+                return cleaned[:50]
+
+        # ================================================================
+        # Strategy 2: Microdata attributes (itemprop)
+        # ================================================================
+        microdata_selectors = [
             '[itemprop="recipeIngredient"]',
             '[itemprop="ingredients"]',
-            '.ingredient',
-            '.ingredients li',
-            '.recipe-ingredients li',
-            '.wprm-recipe-ingredient',
-            '.tasty-recipes-ingredients li',
         ]
 
-        for selector in selectors:
+        for selector in microdata_selectors:
             elements = soup.select(selector)
             for elem in elements:
                 text = elem.get_text(strip=True)
-                if text and len(text) > 2 and len(text) < 200:
+                # Clean up the text
+                text = re.sub(r'\s+', ' ', text)
+                if text and 2 < len(text) < 300:
                     ingredients.append(text)
             if ingredients:
-                break
+                return ingredients[:50]
 
-        return ingredients[:30]  # Limit results
+        # ================================================================
+        # Strategy 3: Popular Recipe Plugin Selectors
+        # ================================================================
+        plugin_selectors = [
+            # WPRM (WP Recipe Maker) - very popular
+            '.wprm-recipe-ingredient',
+            '.wprm-recipe-ingredients li',
+            '.wprm-recipe-ingredient-group li',
+
+            # Tasty Recipes
+            '.tasty-recipes-ingredients li',
+            '.tasty-recipes-ingredients-body li',
+            '.tasty-recipe-ingredients li',
+
+            # Recipe Card Blocks
+            '.recipe-card-ingredients li',
+            '.recipe-card__ingredient',
+
+            # Mediavine Create
+            '.mv-create-ingredients li',
+            '.mv-create-ingredient',
+
+            # Zip Recipes
+            '.zlrecipe-ingredient',
+            '.zip-recipe-ingredients li',
+
+            # EasyRecipe
+            '.ERSIngredients li',
+            '.ingredient',
+
+            # Yoast/Schema
+            '.schema-recipe-ingredients li',
+
+            # Jetpack Recipe
+            '.jetpack-recipe-ingredients li',
+
+            # Generic recipe classes
+            '.recipe-ingredients li',
+            '.ingredients-list li',
+            '.ingredient-list li',
+            '.recipe__ingredients li',
+            '.recipe-content__ingredients li',
+
+            # List-based ingredients
+            '.ingredients li',
+            '.ingredient-item',
+            '.ingredientsList li',
+
+            # Structured content
+            '[data-ingredient]',
+            '[class*="ingredient"] li',
+        ]
+
+        for selector in plugin_selectors:
+            try:
+                elements = soup.select(selector)
+                for elem in elements:
+                    text = elem.get_text(strip=True)
+                    text = re.sub(r'\s+', ' ', text)
+                    if text and 2 < len(text) < 300 and not text.lower().startswith(('instructions', 'directions', 'steps')):
+                        ingredients.append(text)
+                if len(ingredients) >= 3:  # Found enough ingredients
+                    return ingredients[:50]
+            except:
+                continue
+
+        # ================================================================
+        # Strategy 4: Find ingredients section by header
+        # ================================================================
+        ingredient_headers = soup.find_all(['h2', 'h3', 'h4', 'strong', 'b'],
+            string=re.compile(r'ingredient', re.I))
+
+        for header in ingredient_headers:
+            # Look for the next ul/ol list
+            next_list = header.find_next(['ul', 'ol'])
+            if next_list:
+                for li in next_list.find_all('li'):
+                    text = li.get_text(strip=True)
+                    text = re.sub(r'\s+', ' ', text)
+                    if text and 2 < len(text) < 300:
+                        ingredients.append(text)
+                if ingredients:
+                    return ingredients[:50]
+
+        # ================================================================
+        # Strategy 5: Last resort - find any list in recipe container
+        # ================================================================
+        recipe_containers = soup.select('.recipe, .recipe-container, .recipe-content, [class*="recipe"]')
+        for container in recipe_containers[:3]:  # Limit search
+            lists = container.find_all(['ul', 'ol'])
+            for lst in lists[:2]:  # First couple lists are usually ingredients
+                for li in lst.find_all('li'):
+                    text = li.get_text(strip=True)
+                    text = re.sub(r'\s+', ' ', text)
+                    if text and 2 < len(text) < 300:
+                        ingredients.append(text)
+                if len(ingredients) >= 3:
+                    return ingredients[:50]
+
+        return ingredients[:50]
+
     except Exception as e:
         return []
 
 def get_ingredients_safe(url):
     """Get ingredients using available parser"""
+    # Always try the comprehensive builtin parser first for best results
+    ingredients = builtin_get_ingredients(url)
+    if ingredients:
+        return ingredients
+
+    # Fallback to original parser if builtin fails
     if PARSER_AVAILABLE and parser:
         try:
             return parser.get_ingredients(url)
         except:
             pass
-    return builtin_get_ingredients(url)
+
+    return []
 
 # ============================================================================
 # Page Configuration
