@@ -863,6 +863,36 @@ def register_user(email, password, name):
     }
     return True, "Registration successful"
 
+def clean_ingredient_text(text):
+    """
+    Clean up ingredient text by adding proper spacing.
+    Fixes issues like '¼cuppacked' -> '¼ cup packed'
+    """
+    import re
+
+    # Add space after fractions if followed by letter
+    text = re.sub(r'([½¼¾⅓⅔⅛⅜⅝⅞])([a-zA-Z])', r'\1 \2', text)
+
+    # Add space after numbers if followed by letter (but not already spaced)
+    text = re.sub(r'(\d)([a-zA-Z])', r'\1 \2', text)
+
+    # Add space before common measurement words if missing
+    measurements = ['cup', 'cups', 'tablespoon', 'tablespoons', 'tbsp', 'teaspoon', 'teaspoons', 'tsp',
+                   'ounce', 'ounces', 'oz', 'pound', 'pounds', 'lb', 'lbs', 'gram', 'grams',
+                   'ml', 'liter', 'liters', 'pinch', 'dash', 'clove', 'cloves', 'slice', 'slices',
+                   'piece', 'pieces', 'can', 'cans', 'package', 'packages', 'bunch', 'head', 'stalk']
+
+    for m in measurements:
+        # Add space before measurement if preceded by number/fraction without space
+        text = re.sub(rf'(\d)({m})\b', rf'\1 {m}', text, flags=re.IGNORECASE)
+        # Add space after measurement if followed by letter without space
+        text = re.sub(rf'\b({m})([a-zA-Z])', rf'\1 \2', text, flags=re.IGNORECASE)
+
+    # Clean up multiple spaces
+    text = re.sub(r'\s+', ' ', text)
+
+    return text.strip()
+
 def get_mock_amazon_price(ingredient):
     """Get mock Amazon Fresh price for ingredient"""
     import random
@@ -1172,11 +1202,12 @@ def add_pin_page():
                         }
                         st.session_state.recipes.append(recipe)
 
-                        # Add to cart
+                        # Add to cart (clean up text formatting)
                         for ing in ingredients:
+                            cleaned_ing = clean_ingredient_text(ing)
                             st.session_state.cart.append({
-                                'text': ing,
-                                'price': get_mock_amazon_price(ing),
+                                'text': cleaned_ing,
+                                'price': get_mock_amazon_price(cleaned_ing),
                                 'in_cart': True
                             })
 
@@ -1281,11 +1312,17 @@ def cart_page():
             st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
 
             if st.button("Checkout with Amazon Fresh", use_container_width=True, type="primary"):
-                st.success("Order placed successfully!")
+                st.success("Order placed successfully! (Demo Mode)")
+                st.info("Note: This is a demo. No real order was placed.")
                 st.session_state.cart = []
                 st.balloons()
 
-            st.markdown("<p class='text-muted' style='text-align: center; font-size: 0.85rem; margin-top: 0.5rem;'>Fulfilled by Amazon Fresh</p>", unsafe_allow_html=True)
+            st.markdown("""
+            <p class='text-muted' style='text-align: center; font-size: 0.8rem; margin-top: 0.5rem;'>
+                Demo Mode - Prices are simulated<br>
+                <span style='font-size: 0.7rem;'>Real Amazon Fresh integration coming soon</span>
+            </p>
+            """, unsafe_allow_html=True)
 
         # Cart actions
         col1, col2 = st.columns(2)
