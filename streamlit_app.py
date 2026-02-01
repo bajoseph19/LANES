@@ -2,6 +2,33 @@
 LANES - Holistic Market Recipe Shopping App
 Streamlit Application for converting recipe URLs into ingredient shopping carts
 """
+
+# ============================================================================
+# Install Dependencies at Runtime (for Streamlit Cloud)
+# ============================================================================
+import subprocess
+import sys
+
+def install_packages():
+    """Install required packages at runtime"""
+    packages = [
+        'beautifulsoup4',
+        'requests',
+        'lxml',
+        'nltk'
+    ]
+    for package in packages:
+        try:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', package, '-q'])
+        except:
+            pass
+
+# Install packages before importing
+install_packages()
+
+# ============================================================================
+# Now import the packages
+# ============================================================================
 import streamlit as st
 import hashlib
 import json
@@ -9,11 +36,71 @@ import os
 from datetime import datetime, timedelta
 import calendar
 
-# Import the recipe parser
-from recipe_parser import RecipeParser
+# Try to import and setup NLTK
+try:
+    import nltk
+    nltk.download('punkt', quiet=True)
+    nltk.download('averaged_perceptron_tagger', quiet=True)
+except:
+    pass
 
-# Initialize parser
-parser = RecipeParser()
+# Try to import recipe parser, fall back to built-in if it fails
+try:
+    from recipe_parser import RecipeParser
+    parser = RecipeParser()
+    PARSER_AVAILABLE = True
+except Exception as e:
+    PARSER_AVAILABLE = False
+    parser = None
+
+# ============================================================================
+# Built-in Fallback Parser (when recipe_parser.py fails)
+# ============================================================================
+
+def builtin_get_ingredients(url):
+    """Simple built-in ingredient extractor as fallback"""
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        ingredients = []
+
+        # Try common selectors
+        selectors = [
+            '[itemprop="recipeIngredient"]',
+            '[itemprop="ingredients"]',
+            '.ingredient',
+            '.ingredients li',
+            '.recipe-ingredients li',
+            '.wprm-recipe-ingredient',
+            '.tasty-recipes-ingredients li',
+        ]
+
+        for selector in selectors:
+            elements = soup.select(selector)
+            for elem in elements:
+                text = elem.get_text(strip=True)
+                if text and len(text) > 2 and len(text) < 200:
+                    ingredients.append(text)
+            if ingredients:
+                break
+
+        return ingredients[:30]  # Limit results
+    except Exception as e:
+        return []
+
+def get_ingredients_safe(url):
+    """Get ingredients using available parser"""
+    if PARSER_AVAILABLE and parser:
+        try:
+            return parser.get_ingredients(url)
+        except:
+            pass
+    return builtin_get_ingredients(url)
 
 # ============================================================================
 # Page Configuration
@@ -696,7 +783,7 @@ def add_pin_page():
         if url:
             with st.spinner("Extracting ingredients..."):
                 try:
-                    ingredients = parser.get_ingredients(url)
+                    ingredients = get_ingredients_safe(url)
 
                     if ingredients:
                         # Extract title from URL
