@@ -491,7 +491,15 @@ def init_session_state():
     if 'user' not in st.session_state:
         st.session_state.user = None
     if 'users_db' not in st.session_state:
-        st.session_state.users_db = {}
+        # Pre-populate with a demo account
+        st.session_state.users_db = {
+            'demo@holisticmarket.com': {
+                'email': 'demo@holisticmarket.com',
+                'password': hashlib.sha256('demo123'.encode()).hexdigest(),
+                'name': 'Demo User',
+                'created_at': datetime.now().isoformat()
+            }
+        }
     if 'recipes' not in st.session_state:
         st.session_state.recipes = []
     if 'cart' not in st.session_state:
@@ -632,6 +640,15 @@ def login_page():
                     st.error("Invalid email or password")
             else:
                 st.warning("Please enter email and password")
+
+    # Demo account info
+    st.markdown("""
+    <div style="background: rgba(139, 195, 74, 0.1); border: 1px solid #8bc34a; border-radius: 8px; padding: 1rem; margin: 1rem 0; text-align: center;">
+        <p style="margin: 0; font-size: 0.9rem;"><strong>Demo Account:</strong></p>
+        <p style="margin: 0.25rem 0; font-size: 0.85rem;">Email: demo@holisticmarket.com</p>
+        <p style="margin: 0; font-size: 0.85rem;">Password: demo123</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
     st.markdown("<p style='text-align: center;'>Don't have an account?</p>", unsafe_allow_html=True)
